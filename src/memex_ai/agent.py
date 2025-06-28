@@ -1,5 +1,6 @@
 # src/memex_ai/agent.py
 import sqlite3
+import os
 
 from langchain_openai import ChatOpenAI
 from langgraph.prebuilt import create_react_agent
@@ -7,8 +8,19 @@ from langgraph.checkpoint.sqlite import SqliteSaver
 from langgraph.store.memory import InMemoryStore
 from langmem import create_manage_memory_tool, create_search_memory_tool
 
-from .config import OPENAI_API_KEY
+from .config import OPENAI_API_KEY, get_project_root
 from .tools.web_scraper import scrape_url
+
+
+def load_prompt_from_file() -> str:
+    """Loads the system prompt from the prompts/system_prompt.txt file."""
+    prompt_path = os.path.join(get_project_root(), "prompts", "system_prompt.txt")
+    try:
+        with open(prompt_path, "r", encoding="utf-8") as f:
+            return f.read()
+    except FileNotFoundError:
+        print(f"Error: Could not find prompt file at {prompt_path}")
+        return "You are a helpful assistant."
 
 
 def create_agent():
@@ -31,23 +43,7 @@ def create_agent():
 
     tools = [scrape_url, manage_memory, search_memory]
 
-    system_prompt = """You are Memex, a personalized AI research assistant. Your
-    primary goal is to help users with research by remembering key facts and context
-    across conversations.
-
-    **Your Capabilities:**
-    1.  **Web Scraping:** You can use the `scrape_url` tool to get content from
-    websites.
-    2.  **Memory Management:** You have a memory system.
-
-    **How to Use Your Memory (VERY IMPORTANT):**
-    -   **Storing Facts:** When the user provides an important fact to remember, you
-    MUST use the `manage_memory` tool to save it. After using the tool successfully,
-    you should confirm this action to the user.
-    -   **Recalling Facts:** When the user asks a question, first consider if it might
-    relate to a stored fact. If so, use the `search_memory` tool to find the
-    information before answering.
-    """
+    system_prompt = load_prompt_from_file()
 
     agent_executor = create_react_agent(
         model,
@@ -56,8 +52,5 @@ def create_agent():
         checkpointer=checkpointer,
     )
 
-    print(
-        """✅ Memex AI Agent with persistent history and in-memory tools
-created successfully."""
-    )
+    print("✅ Memex AI Agent (with external prompt) created successfully.")
     return agent_executor

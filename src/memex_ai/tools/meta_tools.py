@@ -2,18 +2,22 @@
 from langchain_core.tools import tool, BaseTool
 
 
-@tool
-def list_tools(tools: list[BaseTool]) -> str:
-    """
-    Lists the names and descriptions of all available tools.
-    Use this to tell the user what you are capable of.
-    """
-    if not tools:
-        return "I currently have no tools available."
+def create_list_tools_tool(all_tools: list[BaseTool]) -> BaseTool:
+    """A factory that creates the list_tools tool, giving it context."""
 
-    formatted_tools = []
-    for t in tools:
-        if t.name != "list_tools":
+    @tool
+    def list_tools() -> str:
+        """
+        Lists the names and descriptions of all available tools, except for this one.
+        Use this to tell the user what you are capable of.
+        """
+        if not all_tools:
+            return "I currently have no tools available."
+
+        formatted_tools = []
+        for t in all_tools:
             formatted_tools.append(f"- **{t.name}**: {t.description}")
 
-    return "Here are the tools I have available:\n" + "\n".join(formatted_tools)
+        return "Here are the tools I have available:\n" + "\n".join(formatted_tools)
+
+    return list_tools

@@ -11,9 +11,10 @@ from langmem import create_manage_memory_tool, create_search_memory_tool
 from .config import OPENAI_API_KEY, get_project_root
 from .tools.web_scraper import scrape_url
 
+from .tools.meta_tools import create_list_tools_tool
+
 
 def load_prompt_from_file() -> str:
-    """Loads the system prompt from the prompts/system_prompt.txt file."""
     prompt_path = os.path.join(get_project_root(), "prompts", "system_prompt.txt")
     try:
         with open(prompt_path, "r", encoding="utf-8") as f:
@@ -38,19 +39,27 @@ def create_agent():
     conn = sqlite3.connect("memory.sqlite", check_same_thread=False)
     checkpointer = SqliteSaver(conn=conn)
 
-    manage_memory = create_manage_memory_tool(namespace=("user",), store=memory_store)
-    search_memory = create_search_memory_tool(namespace=("user",), store=memory_store)
+    primary_tools = [
+        scrape_url,
+        create_manage_memory_tool(namespace=("user",), store=memory_store),
+        create_search_memory_tool(namespace=("user",), store=memory_store),
+    ]
 
-    tools = [scrape_url, manage_memory, search_memory]
+    list_tools_tool = create_list_tools_tool(primary_tools)
 
-    system_prompt = load_prompt_from_file()
+    all_tools = primary_tools + [list_tools_tool]
+
+    base_prompt = load_prompt_from_file()
+    system_prompt = base_prompt + (
+        "\n- **list_tools**: Use this tool to tell the user about your capabilities."
+    )
 
     agent_executor = create_react_agent(
         model,
-        tools=tools,
+        tools=all_tools,
         prompt=system_prompt,
         checkpointer=checkpointer,
     )
 
-    print("✅ Memex AI Agent (with external prompt) created successfully.")
+    print("✅ Memex AI Agent (with list_tools tool) created successfully.")
     return agent_executor

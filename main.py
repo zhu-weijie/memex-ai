@@ -1,19 +1,32 @@
 # main.py
 import traceback
+import typer
 from memex_ai.agent import create_agent
 
+app = typer.Typer()
 
-def run_cli():
+
+@app.command()
+def chat(
+    thread_id: str = typer.Option(
+        "default-session",
+        "--thread-id",
+        "-t",
+        help="The conversation thread ID to use.",
+    )
+):
     """
-    Runs a command-line interface to chat with the agent.
+    Starts a new chat session with the Memex AI assistant.
     """
     print("=" * 50)
-    print("🚀 Memex AI is Online! (Type 'exit' to quit)")
+    print("🚀 Memex AI is Online!")
+    print(f"✅ Active Thread: {thread_id}")
+    print("   (Use --thread-id <name> to switch sessions)")
+    print("   (Type 'exit' to quit)")
     print("=" * 50)
 
     agent = create_agent()
-
-    config = {"configurable": {"thread_id": "user-cli-session-1"}}
+    config = {"configurable": {"thread_id": thread_id}}
 
     while True:
         try:
@@ -43,4 +56,4 @@ def run_cli():
 
 
 if __name__ == "__main__":
-    run_cli()
+    app()

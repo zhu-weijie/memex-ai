@@ -16,6 +16,7 @@ beautifulsoup4 = "^4.12.3"
 requests = "^2.31.0"
 tiktoken = "^0.7.0"
 pydantic = "^2.7.1"
+sqlalchemy = "^2.0.41"
 
 [build-system]
 requires = ["poetry-core"]

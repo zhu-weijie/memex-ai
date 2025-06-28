@@ -17,6 +17,7 @@ requests = "^2.31.0"
 tiktoken = "^0.7.0"
 pydantic = "^2.7.1"
 sqlalchemy = "^2.0.41"
+orjson = "^3.10.18"
 
 [build-system]
 requires = ["poetry-core"]

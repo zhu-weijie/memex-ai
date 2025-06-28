@@ -1,28 +1,65 @@
 # main.py
+import sqlite3
 import traceback
-import typer
 from memex_ai.agent import create_agent
 
-app = typer.Typer()
+
+def get_existing_sessions(conn_string: str) -> list[str]:
+    """Queries the checkpointer DB for all unique thread IDs."""
+    try:
+        con = sqlite3.connect(conn_string)
+        cursor = con.cursor()
+        cursor.execute("SELECT DISTINCT thread_id FROM checkpoints")
+        sessions = [row[0] for row in cursor.fetchall()]
+        return sessions
+    except sqlite3.Error:
+        return []
+    finally:
+        if con:
+            con.close()
 
 
-@app.command()
-def chat(
-    thread_id: str = typer.Option(
-        "default-session",
-        "--thread-id",
-        "-t",
-        help="The conversation thread ID to use.",
-    )
-):
-    """
-    Starts a new chat session with the Memex AI assistant.
-    """
+def run_menu():
+    """Displays the main menu to select or create a session."""
+    db_file = "memory.sqlite"
+
+    while True:
+        print("\n=== Memex AI Session Menu ===")
+        sessions = get_existing_sessions(db_file)
+
+        if not sessions:
+            print("No existing sessions found.")
+        else:
+            print("Existing sessions:")
+            for i, session_id in enumerate(sessions):
+                print(f"  {i + 1}: {session_id}")
+
+        print("\nOptions:")
+        print(" - Enter a number to load a session.")
+        print(" - Enter a new name to create a new session.")
+        print(" - Type 'exit' to quit.")
+
+        choice = input("> ").strip()
+
+        if not choice:
+            continue
+        if choice.lower() == "exit":
+            break
+
+        thread_id = ""
+        if choice.isdigit() and 1 <= int(choice) <= len(sessions):
+            thread_id = sessions[int(choice) - 1]
+        else:
+            thread_id = choice
+
+        chat_session(thread_id)
+
+
+def chat_session(thread_id: str):
+    """Starts a chat session with the given thread ID."""
     print("=" * 50)
-    print("🚀 Memex AI is Online!")
-    print(f"✅ Active Thread: {thread_id}")
-    print("   (Use --thread-id <name> to switch sessions)")
-    print("   (Type 'exit' to quit)")
+    print(f"🚀 Memex AI is Online! | Session: {thread_id}")
+    print("   (Type 'exit' to quit this session)")
     print("=" * 50)
 
     agent = create_agent()
@@ -30,10 +67,10 @@ def chat(
 
     while True:
         try:
-            user_input = input("You: ").strip()
+            user_input = input(f"You ({thread_id}): ").strip()
 
             if user_input.lower() == "exit":
-                print("🤖 Assistant: Goodbye!")
+                print("🤖 Assistant: Returning to main menu...")
                 break
 
             if not user_input:
@@ -47,13 +84,13 @@ def chat(
             print(f"🤖 Assistant: {assistant_message}\n")
 
         except KeyboardInterrupt:
-            print("\n🤖 Assistant: Goodbye!")
+            print("\n🤖 Assistant: Returning to main menu...")
             break
-        except Exception as e:
-            print(f"An error occurred: {e}")
+        except Exception:
+            print("\nAn error occurred:\n")
             traceback.print_exc()
             break
 
 
 if __name__ == "__main__":
-    app()
+    run_menu()

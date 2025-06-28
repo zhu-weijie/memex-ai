@@ -3,13 +3,16 @@ import os
 from dotenv import load_dotenv
 
 
+def get_project_root() -> str:
+    """Returns the absolute path to the project root."""
+    return os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+
 def load_api_key():
     """
     Loads the OpenAI API key from the .env file located in the project root.
     """
-    project_root = os.path.dirname(
-        os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    )
+    project_root = get_project_root()
     dotenv_path = os.path.join(project_root, ".env")
 
     if not os.path.exists(dotenv_path):

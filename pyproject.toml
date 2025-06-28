@@ -1,27 +1,35 @@
-[project]
+[tool.poetry]
 name = "memex-ai"
 version = "0.1.0"
-description = ""
-authors = [
-    {name = "zhuwj",email = "byzhubaiyuan@gmail.com"}
-]
+description = "A personalized AI research assistant with long-term memory."
+authors = ["zhuwj <byzhubaiyuan@gmail.com>"]
 readme = "README.md"
-requires-python = "^3.12"
-dependencies = [
-    "openai (>=1.93.0,<2.0.0)",
-    "langgraph (>=0.5.0,<0.6.0)",
-    "langmem (>=0.0.27,<0.0.28)",
-    "python-dotenv (>=1.1.1,<2.0.0)",
-    "beautifulsoup4 (>=4.13.4,<5.0.0)",
-    "requests (>=2.32.4,<3.0.0)",
-    "tiktoken (>=0.9.0,<0.10.0)",
-    "pydantic (>=2.11.7,<3.0.0)"
-]
-
-[tool.poetry]
 packages = [{include = "memex_ai", from = "src"}]
 
+[tool.poetry.dependencies]
+python = "^3.12"
+openai = "^1.9.0"
+langgraph = "^0.5.0"
+langmem = "^0.0.27"
+python-dotenv = "^1.0.1"
+beautifulsoup4 = "^4.12.3"
+requests = "^2.31.0"
+tiktoken = "^0.7.0"
+pydantic = "^2.7.1"
 
 [build-system]
-requires = ["poetry-core>=2.0.0,<3.0.0"]
+requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+# Ruff configuration starts here
+[tool.ruff]
+# Set the minimum Python version to target.
+target-version = "py312"
+# Define the source code directory (CORRECT LOCATION)
+src = ["src"]
+
+[tool.ruff.lint]
+# Select a base set of rules to check for.
+# E = pycodestyle errors
+# F = pyflakes (for things like unused imports)
+select = ["E", "F"]

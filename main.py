@@ -1,4 +1,5 @@
 # main.py
+import traceback
 from memex_ai.agent import create_agent
 
 
@@ -37,6 +38,7 @@ def run_cli():
             break
         except Exception as e:
             print(f"An error occurred: {e}")
+            traceback.print_exc()
             break
 
 

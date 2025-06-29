@@ -50,6 +50,7 @@ cd memex-ai
 Poetry will handle creating a virtual environment and installing all the necessary packages from the `poetry.lock` file.
 
 ```bash
+poetry env use /opt/homebrew/bin/python3.12
 poetry install
 ```
 

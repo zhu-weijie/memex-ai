@@ -1,11 +1,16 @@
 # main.py
 import sqlite3
 import traceback
+
+from rich.console import Console
+from rich.markdown import Markdown
+
 from memex_ai.agent import create_agent
+
+console = Console()
 
 
 def get_existing_sessions(conn_string: str) -> list[str]:
-    """Queries the checkpointer DB for all unique thread IDs."""
     try:
         con = sqlite3.connect(conn_string)
         cursor = con.cursor()
@@ -24,22 +29,22 @@ def run_menu():
     db_file = "memory.sqlite"
 
     while True:
-        print("\n=== Memex AI Session Menu ===")
+        console.print("\n[bold cyan]=== Memex AI Session Menu ===[/bold cyan]")
         sessions = get_existing_sessions(db_file)
 
         if not sessions:
-            print("No existing sessions found.")
+            console.print("[yellow]No existing sessions found.[/yellow]")
         else:
-            print("Existing sessions:")
+            console.print("[bold]Existing sessions:[/bold]")
             for i, session_id in enumerate(sessions):
-                print(f"  {i + 1}: {session_id}")
+                console.print(f"  [green]{i + 1}[/green]: {session_id}")
 
-        print("\nOptions:")
-        print(" - Enter a number to load a session.")
-        print(" - Enter a new name to create a new session.")
-        print(" - Type 'exit' to quit.")
+        console.print("\n[bold]Options:[/bold]")
+        console.print(" - Enter a number to load a session.")
+        console.print(" - Enter a new name to create a new session.")
+        console.print(" - Type 'exit' to quit.")
 
-        choice = input("> ").strip()
+        choice = console.input("[bold]>[/bold] ").strip()
 
         if not choice:
             continue
@@ -57,20 +62,24 @@ def run_menu():
 
 def chat_session(thread_id: str):
     """Starts a chat session with the given thread ID."""
-    print("=" * 50)
-    print(f"🚀 Memex AI is Online! | Session: {thread_id}")
-    print("   (Type 'exit' to quit this session)")
-    print("=" * 50)
+    console.print("=" * 50)
+    console.print(
+        f"🚀 [bold green]Memex AI is Online! | Session: {thread_id}[/bold green]"
+    )
+    console.print("   (Type 'exit' to quit this session)")
+    console.print("=" * 50)
 
     agent = create_agent()
     config = {"configurable": {"thread_id": thread_id}}
 
     while True:
         try:
-            user_input = input(f"You ({thread_id}): ").strip()
+            user_input = console.input(f"[bold]You ({thread_id}):[/bold] ").strip()
 
             if user_input.lower() == "exit":
-                print("🤖 Assistant: Returning to main menu...")
+                console.print(
+                    "[yellow]🤖 Assistant: Returning to main menu...[/yellow]"
+                )
                 break
 
             if not user_input:
@@ -81,13 +90,16 @@ def chat_session(thread_id: str):
             )
 
             assistant_message = response["messages"][-1].content
-            print(f"🤖 Assistant: {assistant_message}\n")
+
+            console.print("\n[bold]🤖 Assistant:[/bold]")
+            console.print(Markdown(assistant_message))
+            console.print("")
 
         except KeyboardInterrupt:
-            print("\n🤖 Assistant: Returning to main menu...")
+            console.print("\n[yellow]🤖 Assistant: Returning to main menu...[/yellow]")
             break
         except Exception:
-            print("\nAn error occurred:\n")
+            console.print("\n[bold red]An error occurred:[/bold red]\n")
             traceback.print_exc()
             break
 
